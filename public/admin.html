@@ -9,6 +9,7 @@
         .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; }
         h1 { margin-top: 0; color: #333; }
         
+        /* 保存ステータス */
         #save-status {
             position: absolute; top: 30px; right: 30px;
             font-weight: bold; font-size: 0.9rem; color: #888;
@@ -27,10 +28,19 @@
         .minute-input { flex: 1; min-width: 80px; }
         
         button { padding: 10px 20px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; transition: 0.2s; }
+        
         .add-btn { background: #4CAF50; color: white; width: 100%; padding: 12px; margin-top: 10px; }
         .add-btn:hover { background: #45a049; }
+        
         .del-btn { background: #ff5252; color: white; }
         .del-btn:hover { background: #ff1744; }
+
+        /* ★追加: リセットボタンのデザイン */
+        .reset-btn { 
+            background: #fff; border: 1px solid #ff5252; color: #ff5252; 
+            margin-top: 20px; font-size: 0.8rem; padding: 8px 15px;
+        }
+        .reset-btn:hover { background: #ff5252; color: white; }
 
         a { color: #666; text-decoration: none; }
         a:hover { text-decoration: underline; }
@@ -38,7 +48,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🛠️ 拠点戦くん 管理画面</h1>
+        <h1>🛠️ 管理画面</h1>
         <div id="save-status">読み込み中...</div>
 
         <div class="input-group">
@@ -47,17 +57,24 @@
         </div>
 
         <h3>タイマーリスト (21:00基準)</h3>
-        <p style="font-size:0.8rem; color:#666; margin-top:-10px;">「20」と入力 → 21:21終了 (+1分)</p>
+        <p style="font-size:0.8rem; color:#666; margin-top:-10px;">「20」と入力 → 21:00 + 20分 + 1分 = 21:21終了</p>
         <div id="timer-list"></div>
         
         <button class="add-btn" onclick="addNewRow()">＋ 行を追加</button>
         
-        <div style="margin-top:30px; text-align:right;"><a href="/" target="_blank">公開ページを確認 &rarr;</a></div>
+        <div style="text-align: right;">
+            <button class="reset-btn" onclick="resetAllTimers()">⚠️ 全て削除 (リセット)</button>
+        </div>
+        
+        <div style="margin-top:20px; text-align:right; border-top: 1px solid #eee; padding-top: 15px;">
+            <a href="/" target="_blank">公開ページを確認 &rarr;</a>
+        </div>
     </div>
 
     <script>
         let saveTimeout = null;
 
+        // 初期ロード
         fetch('/api/data')
             .then(res => res.json())
             .then(data => {
@@ -71,6 +88,7 @@
             })
             .catch(() => updateStatus('error', '❌ 読み込み失敗'));
 
+        // 行作成
         function createRow(label = "", minutes = "") {
             const div = document.createElement('div');
             div.className = 'row';
@@ -91,12 +109,33 @@
             row.classList.add('fade-out');
             setTimeout(() => {
                 row.remove();
-                triggerSave(0);
+                triggerSave(0); // 削除は即時保存
             }, 300);
+        }
+
+        // ★追加: 全削除機能
+        function resetAllTimers() {
+            if (!confirm("【警告】\n現在表示されているすべてのタイマーを削除します。\nよろしいですか？")) {
+                return;
+            }
+            
+            // リストを空にする
+            const list = document.getElementById('timer-list');
+            list.innerHTML = '';
+            
+            // 即座に空の状態で保存（0秒遅延）
+            triggerSave(0);
+            
+            // 使いやすいように空の行を1つ追加しておく
+            setTimeout(() => {
+                createRow();
+                // 空行追加は保存トリガーしない
+            }, 500); 
         }
 
         document.getElementById('delay').addEventListener('input', () => triggerSave());
 
+        // 自動保存トリガー
         function triggerSave(delayMs = 1000) {
             updateStatus('saving', '⏳ 保存中...');
             if (saveTimeout) clearTimeout(saveTimeout);
@@ -106,6 +145,7 @@
             }, delayMs);
         }
 
+        // 保存実行
         function performSave() {
             const delaySeconds = parseInt(document.getElementById('delay').value) || 0;
             const timers = [];
