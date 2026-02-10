@@ -3,9 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="favicon.png" type="image/png">
-    <title>拠点戦タイマー</title>
     
+    <link rel="icon" href="favicon.png" type="image/png">
+    
+    <title>拠点戦タイマー</title>
+    <meta name="description" content="黒い砂漠 拠点戦用カウントダウンツール">
+    <meta property="og:title" content="拠点戦タイマー">
+    <meta property="og:description" content="砦の破壊時刻を管理・共有するためのタイマーです">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://h1dia.github.io/nodewar-timer/">
+    <meta property="og:image" content="https://h1dia.github.io/nodewar-timer/favicon.png">
+    <meta name="twitter:card" content="summary">
+
     <style>
         :root {
             --bg-base: #0a0a0a;
@@ -29,9 +38,7 @@
             font-family: var(--font-sans);
             font-weight: 700;
             display: flex; flex-direction: column; align-items: center;
-            min-height: 100vh; 
-            padding: 50px 20px;
-            box-sizing: border-box;
+            min-height: 100vh; padding: 50px 20px; box-sizing: border-box;
         }
 
         #audio-control {
@@ -50,7 +57,6 @@
             width: 100%; padding-bottom: 35px; text-align: center;
             margin-bottom: 50px; position: relative; border-bottom: none; 
         }
-        
         header::after {
             content: ""; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px;
             background: linear-gradient(90deg, rgba(198, 160, 109, 0) 0%, rgba(198, 160, 109, 1) 50%, rgba(198, 160, 109, 0) 100%);
@@ -68,7 +74,6 @@
             justify-content: space-between; align-items: center; text-align: left;
             box-shadow: 0 5px 20px rgba(0,0,0,0.4); transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
         .timer-card::before, .timer-card::after { content: ""; position: absolute; width: 14px; height: 14px; border: 3px solid var(--accent-gold); }
         .timer-card::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
         .timer-card::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
@@ -79,7 +84,6 @@
             letter-spacing: 0.02em; font-variant-numeric: tabular-nums;
             text-align: right; min-width: 230px;
         }
-
         .label { 
             font-size: 1.4rem; color: var(--text-main); margin: 0; 
             letter-spacing: 0.05em; flex-grow: 1; padding-right: 20px; word-break: break-all;
@@ -122,12 +126,11 @@
 
     <div id="warning-area" class="bottom-badge">サーバー接続エラー</div>
     <div id="status-area" class="bottom-badge">
-        <span id="status-text">接続中</span> | 次回更新: <span id="update-countdown">--S</span>
+        <span id="status-text">接続中</span> | 更新: <span id="update-countdown">--S</span>
     </div>
 
     <script>
-        const CONFIG = { BH: 21, INTV: 5000 }; // 更新間隔: 5秒
-
+        const CONFIG = { BH: 21, INTV: 5000 }; 
         let state = { timerData: [], serverOffset: 0, lastCheckData: "", delaySeconds: 0, nextUpdateTimestamp: 0, audioEnabled: false };
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         let audioCtx = null;
@@ -139,7 +142,7 @@
             const btn = document.getElementById('audio-control');
             btn.textContent = state.audioEnabled ? "🔊" : "🔇";
             btn.classList.toggle('off', !state.audioEnabled);
-            if (state.audioEnabled) playNotifySound();
+            if(state.audioEnabled) playNotifySound();
         }
 
         function playNotifySound() {
@@ -158,17 +161,14 @@
         }
 
         const updateStatus = (text) => {
-            const txtEl = document.getElementById('status-text');
-            if(txtEl) txtEl.textContent = text.toUpperCase();
+            const el = document.getElementById('status-text');
+            if(el) el.textContent = text.toUpperCase();
         };
 
-        // --- データ取得ロジック (API経由) ---
         async function fetchApiData() {
             updateStatus('syncing');
             try {
                 const response = await fetch('/api/data');
-                if (!response.ok) throw new Error('Network response was not ok');
-                
                 const data = await response.json();
                 
                 document.getElementById('warning-area').classList.remove('show');
@@ -180,8 +180,8 @@
 
                 if (data.timers && Array.isArray(data.timers)) {
                     data.timers.forEach((t, index) => {
-                        const [h, m] = t.time.split(':').map(Number);
-                        const target = getTargetTime(h, m);
+                        const minutesToAdd = parseInt(t.minutes, 10);
+                        const target = getTargetTime(CONFIG.BH, minutesToAdd);
                         processed.push({
                             id: `timer-${index}`,
                             label: t.label,
@@ -199,9 +199,11 @@
             }
         }
 
-        function getTargetTime(hour, minute) {
+        // ★ +1分を加算するロジック
+        function getTargetTime(baseHour, minutesToAdd) {
             const t = new Date(Date.now() + state.serverOffset);
-            t.setHours(hour, minute, 0, 0);
+            t.setHours(baseHour, 0, 0, 0); 
+            t.setMinutes(t.getMinutes() + minutesToAdd + 1);
             t.setSeconds(t.getSeconds() + state.delaySeconds);
             return t;
         }
@@ -214,7 +216,6 @@
             const container = document.getElementById('timer-container');
             state.timerData = newData;
             container.innerHTML = '';
-            
             newData.sort((a, b) => (a.isFinished !== b.isFinished) ? (a.isFinished ? 1 : -1) : (a.targetDate - b.targetDate));
 
             newData.forEach(item => {
@@ -270,10 +271,7 @@
 
         function scheduleNext() {
             state.nextUpdateTimestamp = Date.now() + CONFIG.INTV;
-            setTimeout(() => {
-                fetchApiData();
-                scheduleNext();
-            }, CONFIG.INTV);
+            setTimeout(() => { fetchApiData(); scheduleNext(); }, CONFIG.INTV);
         }
 
         async function init() {
