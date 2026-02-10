@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <link rel="icon" href="favicon.png" type="image/png">
     
     <title>拠点戦タイマー</title>
@@ -178,15 +177,32 @@
                 const now = new Date(Date.now() + state.serverOffset);
                 let processed = [];
 
+                // ★戦闘開始(21:00)タイマーの自動生成
+                // ここは単純に「21:00 + 遅延秒数」で計算します（+1分はしません）
+                const startTarget = new Date(Date.now() + state.serverOffset);
+                startTarget.setHours(CONFIG.BH, 0, 0, 0); 
+                startTarget.setSeconds(startTarget.getSeconds() + state.delaySeconds);
+
+                if (startTarget > now) {
+                    processed.push({
+                        id: "start-timer",
+                        label: "COMBAT START",
+                        targetDate: startTarget,
+                        isFinished: false,
+                        type: "start"
+                    });
+                }
+
                 if (data.timers && Array.isArray(data.timers)) {
                     data.timers.forEach((t, index) => {
                         const minutesToAdd = parseInt(t.minutes, 10);
-                        const target = getTargetTime(CONFIG.BH, minutesToAdd);
+                        const target = getDestructionTime(CONFIG.BH, minutesToAdd);
                         processed.push({
                             id: `timer-${index}`,
                             label: t.label,
                             targetDate: target,
-                            isFinished: target <= now
+                            isFinished: target <= now,
+                            type: "normal"
                         });
                     });
                 }
@@ -199,11 +215,11 @@
             }
         }
 
-        // ★ +1分を加算するロジック
-        function getTargetTime(baseHour, minutesToAdd) {
+        // 通常の砦タイマー用 (+1分ロジック)
+        function getDestructionTime(baseHour, minutesToAdd) {
             const t = new Date(Date.now() + state.serverOffset);
             t.setHours(baseHour, 0, 0, 0); 
-            t.setMinutes(t.getMinutes() + minutesToAdd + 1);
+            t.setMinutes(t.getMinutes() + minutesToAdd + 1); // +1分
             t.setSeconds(t.getSeconds() + state.delaySeconds);
             return t;
         }
@@ -246,13 +262,20 @@
                 const diff = item.targetDate - now;
                 const el = document.getElementById(item.id);
                 if (!el) return;
+                
                 if (diff <= 0) {
                     item.isFinished = true;
                     playNotifySound(); 
                     const card = document.getElementById(`card-${item.id}`);
-                    card.classList.add('finished');
-                    el.textContent = "00:00:00";
-                    hasNewFinished = true;
+                    
+                    if(item.type === "start") {
+                       card.style.opacity = '0';
+                       setTimeout(() => card.remove(), 600);
+                    } else {
+                       card.classList.add('finished');
+                       el.textContent = "00:00:00";
+                       hasNewFinished = true;
+                    }
                 } else {
                     const s = Math.ceil(diff / 1000);
                     el.textContent = [Math.floor(s/3600), Math.floor((s%3600)/60), s%60].map(v => String(v).padStart(2,'0')).join(':');
