@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拠点戦タイマー管理</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f0f0f0; max-width: 800px; margin: 0 auto; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { margin-top: 0; color: #333; }
+        .input-group { margin-bottom: 20px; padding: 15px; background: #fafafa; border: 1px solid #ddd; border-radius: 5px; }
+        .row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        input[type="text"] { flex: 2; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        input[type="time"] { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        input[type="number"] { padding: 8px; width: 80px; }
+        
+        button { padding: 10px 20px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; font-size: 0.9rem; transition: 0.2s; }
+        .add-btn { background: #4CAF50; color: white; margin-bottom: 20px; }
+        .add-btn:hover { background: #45a049; }
+        .save-btn { background: #c6a06d; color: white; width: 100%; font-size: 1.2rem; padding: 15px; }
+        .save-btn:hover { background: #b08d5b; }
+        .del-btn { background: #ff5252; color: white; padding: 10px 15px; }
+        .del-btn:hover { background: #ff1744; }
+
+        #msg { margin-top: 15px; text-align: center; font-weight: bold; min-height: 1.5em; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛠️ 拠点戦タイマー管理</h1>
+        
+        <div class="input-group">
+            <label style="font-weight:bold;">遅延秒数 (秒):</label>
+            <input type="number" id="delay" value="0">
+            <span style="font-size:0.8rem; color:#666;"> ※プラスなら遅らせる、マイナスなら早める</span>
+        </div>
+
+        <h3>タイマーリスト</h3>
+        <div id="timer-list"></div>
+        
+        <button class="add-btn" onclick="addRow()">＋ 行を追加</button>
+        
+        <hr style="border:0; border-top:1px solid #ddd; margin: 20px 0;">
+        
+        <button class="save-btn" onclick="saveData()">設定を保存して公開</button>
+        <div id="msg"></div>
+        
+        <div style="margin-top:20px; text-align:right;">
+            <a href="/" target="_blank" style="color:#666;">公開ページを確認 &rarr;</a>
+        </div>
+    </div>
+
+    <script>
+        // ロード時にデータを取得
+        fetch('/api/data')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('delay').value = data.delaySeconds;
+                if(data.timers && data.timers.length > 0){
+                    data.timers.forEach(t => addRow(t.label, t.time));
+                } else {
+                    addRow(); // 空なら1行追加
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('msg').innerHTML = '<span class="error">データ取得に失敗しました。認証を確認してください。</span>';
+            });
+
+        function addRow(label = "", time = "") {
+            const div = document.createElement('div');
+            div.className = 'row';
+            div.innerHTML = `
+                <input type="text" placeholder="砦名 (例: カルフェオン第1)" value="${label}">
+                <input type="time" value="${time}" step="1">
+                <button class="del-btn" onclick="this.parentElement.remove()">削除</button>
+            `;
+            document.getElementById('timer-list').appendChild(div);
+        }
+
+        function saveData() {
+            const btn = document.querySelector('.save-btn');
+            btn.disabled = true;
+            btn.textContent = "保存中...";
+
+            const delaySeconds = parseInt(document.getElementById('delay').value) || 0;
+            const timers = [];
+            document.querySelectorAll('#timer-list .row').forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                if (inputs[0].value && inputs[1].value) {
+                    timers.push({ label: inputs[0].value, time: inputs[1].value });
+                }
+            });
+
+            fetch('/api/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ delaySeconds, timers })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const msg = document.getElementById('msg');
+                if(data.success) {
+                    msg.innerHTML = '<span class="success">✅ 保存しました！公開ページに反映されます。</span>';
+                } else {
+                    msg.innerHTML = '<span class="error">❌ エラー: ' + (data.error || '保存失敗') + '</span>';
+                }
+                setTimeout(() => msg.textContent = "", 3000);
+            })
+            .catch(err => {
+                document.getElementById('msg').innerHTML = '<span class="error">❌ 通信エラーが発生しました</span>';
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = "設定を保存して公開";
+            });
+        }
+    </script>
+</body>
+</html>
