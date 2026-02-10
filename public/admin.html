@@ -22,7 +22,6 @@
         }
         h1 { margin-top: 0; font-size: 1.5rem; }
         
-        /* 保存ステータス */
         #save-status {
             position: absolute; top: 35px; right: 30px;
             font-weight: bold; font-size: 1rem; color: #888;
@@ -40,36 +39,33 @@
             border-radius: 8px; 
         }
 
-        /* 行のデザイン調整 */
         .row { 
             display: flex; 
-            gap: 15px; /* 間隔を広げる */
+            gap: 15px; 
             margin-bottom: 15px; 
             align-items: center; 
             transition: all 0.3s; 
         }
         .row.fade-out { opacity: 0; transform: translateX(20px); }
         
-        /* ★入力欄を大きくする設定 */
         input[type="text"], input[type="number"] { 
-            padding: 15px;          /* 内側の余白を広げる */
-            font-size: 1.2rem;      /* 文字を大きく */
-            border: 2px solid #ccc; /* 枠線を少し太く */
-            border-radius: 8px;     /* 角を丸く */
+            padding: 15px;          
+            font-size: 1.2rem;      
+            border: 2px solid #ccc; 
+            border-radius: 8px;     
             outline: none;
             transition: border-color 0.2s;
         }
         input[type="text"]:focus, input[type="number"]:focus {
-            border-color: #c6a06d;  /* フォーカス時の色 */
+            border-color: #c6a06d;  
         }
 
         input[type="text"] { flex: 2; }
         input[type="number"] { padding: 15px; }
-        .minute-input { flex: 1; min-width: 100px; } /* 幅も少し広げる */
+        .minute-input { flex: 1; min-width: 100px; }
         
-        /* ★ボタンも大きくする設定 */
         button { 
-            padding: 15px 25px;     /* ボタンも大きく */
+            padding: 15px 25px;     
             font-size: 1rem;
             cursor: pointer; 
             border: none; 
@@ -87,7 +83,6 @@
         .del-btn { background: #ff5252; color: white; padding: 15px 20px; }
         .del-btn:hover { background: #ff1744; }
 
-        /* リセットボタン */
         .reset-btn { 
             background: #fff; border: 2px solid #ff5252; color: #ff5252; 
             margin-top: 30px; font-size: 0.9rem; padding: 10px 20px;
@@ -143,7 +138,6 @@
             })
             .catch(() => updateStatus('error', '❌ 読み込み失敗'));
 
-        // 行作成
         function createRow(label = "", minutes = "") {
             const div = document.createElement('div');
             div.className = 'row';
@@ -157,6 +151,7 @@
 
         function addNewRow() {
             createRow();
+            // 追加直後は保存しない（空行のため）
         }
 
         function deleteRow(btn) {
@@ -217,6 +212,45 @@
             el.className = type;
             el.textContent = text;
         }
+
+        // ★★★ Enterキーによる移動・追加ロジック ★★★
+        document.addEventListener('keydown', function(e) {
+            // Enter以外は無視
+            if (e.key !== 'Enter') return;
+            
+            // 入力欄でなければ無視
+            if (e.target.tagName !== 'INPUT') return;
+
+            e.preventDefault(); // デフォルトの送信等を防ぐ
+
+            const delayInput = document.getElementById('delay');
+            const allInputs = Array.from(document.querySelectorAll('#timer-list input'));
+            
+            // ケース1: 遅延秒数にいる場合 -> 最初のタイマー行へ
+            if (e.target === delayInput) {
+                if (allInputs.length > 0) allInputs[0].focus();
+                else addNewRow(); // 行がなければ作る
+                return;
+            }
+
+            // ケース2: タイマーリスト内にいる場合
+            const currentIndex = allInputs.indexOf(e.target);
+            if (currentIndex !== -1) {
+                // 次の要素があるかチェック
+                if (currentIndex < allInputs.length - 1) {
+                    allInputs[currentIndex + 1].focus();
+                } else {
+                    // 最後の要素の場合 -> 新しい行を追加してフォーカス
+                    addNewRow();
+                    // DOM更新を少し待ってからフォーカス移動
+                    setTimeout(() => {
+                        const newInputs = document.querySelectorAll('#timer-list input');
+                        // 追加された行の左側(砦名)にフォーカス
+                        newInputs[newInputs.length - 2].focus(); 
+                    }, 50);
+                }
+            }
+        });
     </script>
 </body>
 </html>
