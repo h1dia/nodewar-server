@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="favicon.png" type="image/png">
     
-    <title>拠点戦タイマー</title>
+    <title>拠点戦くん</title>
     <meta name="description" content="黒い砂漠 拠点戦用カウントダウンツール">
-    <meta property="og:title" content="拠点戦タイマー">
+    <meta property="og:title" content="拠点戦くん">
     <meta property="og:description" content="砦の破壊時刻を管理・共有するためのタイマーです">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://h1dia.github.io/nodewar-timer/">
@@ -177,8 +177,6 @@
                 const now = new Date(Date.now() + state.serverOffset);
                 let processed = [];
 
-                // ★戦闘開始(21:00)タイマーの自動生成
-                // ここは単純に「21:00 + 遅延秒数」で計算します（+1分はしません）
                 const startTarget = new Date(Date.now() + state.serverOffset);
                 startTarget.setHours(CONFIG.BH, 0, 0, 0); 
                 startTarget.setSeconds(startTarget.getSeconds() + state.delaySeconds);
@@ -186,7 +184,7 @@
                 if (startTarget > now) {
                     processed.push({
                         id: "start-timer",
-                        label: "戦闘開始まで",
+                        label: "COMBAT START",
                         targetDate: startTarget,
                         isFinished: false,
                         type: "start"
@@ -215,11 +213,10 @@
             }
         }
 
-        // 通常の砦タイマー用 (+1分ロジック)
         function getDestructionTime(baseHour, minutesToAdd) {
             const t = new Date(Date.now() + state.serverOffset);
             t.setHours(baseHour, 0, 0, 0); 
-            t.setMinutes(t.getMinutes() + minutesToAdd + 1); // +1分
+            t.setMinutes(t.getMinutes() + minutesToAdd + 1); 
             t.setSeconds(t.getSeconds() + state.delaySeconds);
             return t;
         }

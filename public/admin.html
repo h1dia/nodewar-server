@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>拠点戦タイマー管理</title>
+    <title>拠点戦くん 管理画面</title>
     <style>
         body { font-family: sans-serif; padding: 20px; background: #f0f0f0; max-width: 800px; margin: 0 auto; }
         .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; }
         h1 { margin-top: 0; color: #333; }
         
-        /* 保存ステータス */
         #save-status {
             position: absolute; top: 30px; right: 30px;
             font-weight: bold; font-size: 0.9rem; color: #888;
@@ -39,7 +38,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🛠️ 管理画面</h1>
+        <h1>🛠️ 拠点戦くん 管理画面</h1>
         <div id="save-status">読み込み中...</div>
 
         <div class="input-group">
@@ -59,7 +58,6 @@
     <script>
         let saveTimeout = null;
 
-        // 初期ロード
         fetch('/api/data')
             .then(res => res.json())
             .then(data => {
@@ -73,7 +71,6 @@
             })
             .catch(() => updateStatus('error', '❌ 読み込み失敗'));
 
-        // 行作成
         function createRow(label = "", minutes = "") {
             const div = document.createElement('div');
             div.className = 'row';
@@ -87,7 +84,6 @@
 
         function addNewRow() {
             createRow();
-            // 行追加時は空なので保存しないが、即座に編集開始できるようにする
         }
 
         function deleteRow(btn) {
@@ -95,13 +91,12 @@
             row.classList.add('fade-out');
             setTimeout(() => {
                 row.remove();
-                triggerSave(0); // 削除は即時保存
+                triggerSave(0);
             }, 300);
         }
 
         document.getElementById('delay').addEventListener('input', () => triggerSave());
 
-        // 自動保存トリガー (Debounce処理)
         function triggerSave(delayMs = 1000) {
             updateStatus('saving', '⏳ 保存中...');
             if (saveTimeout) clearTimeout(saveTimeout);
@@ -111,7 +106,6 @@
             }, delayMs);
         }
 
-        // 保存実行
         function performSave() {
             const delaySeconds = parseInt(document.getElementById('delay').value) || 0;
             const timers = [];
