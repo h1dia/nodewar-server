@@ -5,45 +5,97 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>拠点戦くん 管理画面</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f0f0f0; max-width: 800px; margin: 0 auto; }
-        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; }
-        h1 { margin-top: 0; color: #333; }
+        body { 
+            font-family: sans-serif; 
+            padding: 20px; 
+            background: #f0f0f0; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            color: #333;
+        }
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            position: relative; 
+        }
+        h1 { margin-top: 0; font-size: 1.5rem; }
         
         /* 保存ステータス */
         #save-status {
-            position: absolute; top: 30px; right: 30px;
-            font-weight: bold; font-size: 0.9rem; color: #888;
+            position: absolute; top: 35px; right: 30px;
+            font-weight: bold; font-size: 1rem; color: #888;
             display: flex; align-items: center; gap: 5px;
         }
         #save-status.saving { color: #e67e22; }
         #save-status.saved { color: #27ae60; }
         #save-status.error { color: #c0392b; }
 
-        .input-group { margin-bottom: 20px; padding: 15px; background: #fafafa; border: 1px solid #ddd; border-radius: 5px; }
-        .row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; transition: all 0.3s; }
+        .input-group { 
+            margin-bottom: 30px; 
+            padding: 20px; 
+            background: #f8f9fa; 
+            border: 2px solid #e9ecef; 
+            border-radius: 8px; 
+        }
+
+        /* 行のデザイン調整 */
+        .row { 
+            display: flex; 
+            gap: 15px; /* 間隔を広げる */
+            margin-bottom: 15px; 
+            align-items: center; 
+            transition: all 0.3s; 
+        }
         .row.fade-out { opacity: 0; transform: translateX(20px); }
         
-        input[type="text"] { flex: 2; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
-        input[type="number"] { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
-        .minute-input { flex: 1; min-width: 80px; }
+        /* ★入力欄を大きくする設定 */
+        input[type="text"], input[type="number"] { 
+            padding: 15px;          /* 内側の余白を広げる */
+            font-size: 1.2rem;      /* 文字を大きく */
+            border: 2px solid #ccc; /* 枠線を少し太く */
+            border-radius: 8px;     /* 角を丸く */
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus, input[type="number"]:focus {
+            border-color: #c6a06d;  /* フォーカス時の色 */
+        }
+
+        input[type="text"] { flex: 2; }
+        input[type="number"] { padding: 15px; }
+        .minute-input { flex: 1; min-width: 100px; } /* 幅も少し広げる */
         
-        button { padding: 10px 20px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; transition: 0.2s; }
+        /* ★ボタンも大きくする設定 */
+        button { 
+            padding: 15px 25px;     /* ボタンも大きく */
+            font-size: 1rem;
+            cursor: pointer; 
+            border: none; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            transition: 0.2s; 
+        }
         
-        .add-btn { background: #4CAF50; color: white; width: 100%; padding: 12px; margin-top: 10px; }
+        .add-btn { 
+            background: #4CAF50; color: white; width: 100%; 
+            padding: 15px; margin-top: 15px; font-size: 1.1rem; 
+        }
         .add-btn:hover { background: #45a049; }
         
-        .del-btn { background: #ff5252; color: white; }
+        .del-btn { background: #ff5252; color: white; padding: 15px 20px; }
         .del-btn:hover { background: #ff1744; }
 
-        /* ★追加: リセットボタンのデザイン */
+        /* リセットボタン */
         .reset-btn { 
-            background: #fff; border: 1px solid #ff5252; color: #ff5252; 
-            margin-top: 20px; font-size: 0.8rem; padding: 8px 15px;
+            background: #fff; border: 2px solid #ff5252; color: #ff5252; 
+            margin-top: 30px; font-size: 0.9rem; padding: 10px 20px;
         }
         .reset-btn:hover { background: #ff5252; color: white; }
 
-        a { color: #666; text-decoration: none; }
-        a:hover { text-decoration: underline; }
+        a { color: #666; text-decoration: none; font-size: 1rem; display: inline-block; padding: 10px; }
+        a:hover { text-decoration: underline; color: #c6a06d; }
     </style>
 </head>
 <body>
@@ -52,12 +104,15 @@
         <div id="save-status">読み込み中...</div>
 
         <div class="input-group">
-            <label style="font-weight:bold;">遅延秒数 (秒):</label>
-            <input type="number" id="delay" value="0">
+            <label style="font-weight:bold; font-size:1.1rem;">遅延秒数 (秒):</label>
+            <input type="number" id="delay" value="0" style="width: 100px; margin-left:10px;">
         </div>
 
         <h3>タイマーリスト (21:00基準)</h3>
-        <p style="font-size:0.8rem; color:#666; margin-top:-10px;">「20」と入力 → 21:00 + 20分 + 1分 = 21:21終了</p>
+        <p style="font-size:0.9rem; color:#666; margin-top:-10px; margin-bottom: 20px;">
+            「20」と入力 → 21:00 + 20分 + 1分 = <b>21:21終了</b>
+        </p>
+        
         <div id="timer-list"></div>
         
         <button class="add-btn" onclick="addNewRow()">＋ 行を追加</button>
@@ -109,33 +164,22 @@
             row.classList.add('fade-out');
             setTimeout(() => {
                 row.remove();
-                triggerSave(0); // 削除は即時保存
+                triggerSave(0);
             }, 300);
         }
 
-        // ★追加: 全削除機能
         function resetAllTimers() {
             if (!confirm("【警告】\n現在表示されているすべてのタイマーを削除します。\nよろしいですか？")) {
                 return;
             }
-            
-            // リストを空にする
             const list = document.getElementById('timer-list');
             list.innerHTML = '';
-            
-            // 即座に空の状態で保存（0秒遅延）
             triggerSave(0);
-            
-            // 使いやすいように空の行を1つ追加しておく
-            setTimeout(() => {
-                createRow();
-                // 空行追加は保存トリガーしない
-            }, 500); 
+            setTimeout(() => { createRow(); }, 500); 
         }
 
         document.getElementById('delay').addEventListener('input', () => triggerSave());
 
-        // 自動保存トリガー
         function triggerSave(delayMs = 1000) {
             updateStatus('saving', '⏳ 保存中...');
             if (saveTimeout) clearTimeout(saveTimeout);
@@ -145,7 +189,6 @@
             }, delayMs);
         }
 
-        // 保存実行
         function performSave() {
             const delaySeconds = parseInt(document.getElementById('delay').value) || 0;
             const timers = [];
