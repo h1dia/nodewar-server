@@ -38,9 +38,20 @@ body {
     overflow-x: hidden;
 }
 
-/* Background Effects Removed */
 .bg-effects {
     display: none;
+}
+
+#territory-display {
+    font-family: var(--font-base);
+    font-size: 1.2rem;
+    color: var(--text-dim);
+    margin-top: 5px;
+    background: rgba(255, 255, 255, 0.05);
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-left: 10px;
 }
 
 #audio-control {

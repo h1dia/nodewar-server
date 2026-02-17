@@ -19,8 +19,8 @@ router.get('/data', async (req, res) => {
 // 3. データ更新
 router.post('/update', authMiddleware, async (req, res) => {
     try {
-        const { delaySeconds, timers } = req.body;
-        await DataService.updateData(delaySeconds, timers);
+        const { delaySeconds, timers, territory } = req.body;
+        await DataService.updateData(delaySeconds, timers, territory);
         res.json({ success: true, message: "更新完了" });
     } catch (err) {
         console.error(err); // Log the error for debugging

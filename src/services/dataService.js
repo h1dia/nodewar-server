@@ -48,10 +48,15 @@ const DataService = {
             try {
                 let delayDoc = await Setting.findOne({ key: 'delay' });
                 if (!delayDoc) delayDoc = await Setting.create({ key: 'delay', value: 0 });
+
+                let territoryDoc = await Setting.findOne({ key: 'territory' });
+                if (!territoryDoc) territoryDoc = await Setting.create({ key: 'territory', value: '未定' });
+
                 const timers = await Timer.find({});
 
                 return {
                     delaySeconds: delayDoc.value,
+                    territory: territoryDoc.value,
                     timers: timers
                 };
             } catch (err) {
@@ -63,12 +68,18 @@ const DataService = {
         return await getLocalData();
     },
 
-    async updateData(delaySeconds, timersData) {
+    async updateData(delaySeconds, timersData, territory) {
         if (isMongoConnected()) {
             try {
                 await Setting.findOneAndUpdate(
                     { key: 'delay' },
                     { value: delaySeconds },
+                    { upsert: true }
+                );
+
+                await Setting.findOneAndUpdate(
+                    { key: 'territory' },
+                    { value: territory },
                     { upsert: true }
                 );
 
@@ -89,6 +100,7 @@ const DataService = {
         console.log("Using Local File Storage (Write)");
         const data = {
             delaySeconds,
+            territory: territory || '未定',
             timers: timersData.map(t => ({
                 label: t.label,
                 minutes: parseInt(t.minutes, 10)

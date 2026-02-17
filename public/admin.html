@@ -1,98 +1,168 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>拠点戦くん 管理画面</title>
     <style>
-        body { 
-            font-family: sans-serif; 
-            padding: 20px; 
-            background: #f0f0f0; 
-            max-width: 800px; 
-            margin: 0 auto; 
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+            max-width: 800px;
+            margin: 0 auto;
             color: #333;
         }
-        .container { 
-            background: white; 
-            padding: 30px; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-            position: relative; 
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
-        h1 { margin-top: 0; font-size: 1.5rem; }
-        
+
+        h1 {
+            margin-top: 0;
+            font-size: 1.5rem;
+        }
+
         #save-status {
-            position: absolute; top: 35px; right: 30px;
-            font-weight: bold; font-size: 1rem; color: #888;
-            display: flex; align-items: center; gap: 5px;
-        }
-        #save-status.saving { color: #e67e22; }
-        #save-status.saved { color: #27ae60; }
-        #save-status.error { color: #c0392b; }
-
-        .input-group { 
-            margin-bottom: 30px; 
-            padding: 20px; 
-            background: #f8f9fa; 
-            border: 2px solid #e9ecef; 
-            border-radius: 8px; 
+            position: absolute;
+            top: 35px;
+            right: 30px;
+            font-weight: bold;
+            font-size: 1rem;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        .row { 
-            display: flex; 
-            gap: 15px; 
-            margin-bottom: 15px; 
-            align-items: center; 
-            transition: all 0.3s; 
+        #save-status.saving {
+            color: #e67e22;
         }
-        .row.fade-out { opacity: 0; transform: translateX(20px); }
-        
-        input[type="text"], input[type="number"] { 
-            padding: 15px;          
-            font-size: 1.2rem;      
-            border: 2px solid #ccc; 
-            border-radius: 8px;     
+
+        #save-status.saved {
+            color: #27ae60;
+        }
+
+        #save-status.error {
+            color: #c0392b;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+        }
+
+        .row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .row.fade-out {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            padding: 15px;
+            font-size: 1.2rem;
+            border: 2px solid #ccc;
+            border-radius: 8px;
             outline: none;
             transition: border-color 0.2s;
         }
-        input[type="text"]:focus, input[type="number"]:focus {
-            border-color: #c6a06d;  
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            border-color: #c6a06d;
         }
 
-        input[type="text"] { flex: 2; }
-        input[type="number"] { padding: 15px; }
-        .minute-input { flex: 1; min-width: 100px; }
-        
-        button { 
-            padding: 15px 25px;     
+        input[type="text"] {
+            flex: 2;
+        }
+
+        input[type="number"] {
+            padding: 15px;
+        }
+
+        .minute-input {
+            flex: 1;
+            min-width: 100px;
+        }
+
+        button {
+            padding: 15px 25px;
             font-size: 1rem;
-            cursor: pointer; 
-            border: none; 
-            border-radius: 8px; 
-            font-weight: bold; 
-            transition: 0.2s; 
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: 0.2s;
         }
-        
-        .add-btn { 
-            background: #4CAF50; color: white; width: 100%; 
-            padding: 15px; margin-top: 15px; font-size: 1.1rem; 
-        }
-        .add-btn:hover { background: #45a049; }
-        
-        .del-btn { background: #ff5252; color: white; padding: 15px 20px; }
-        .del-btn:hover { background: #ff1744; }
 
-        .reset-btn { 
-            background: #fff; border: 2px solid #ff5252; color: #ff5252; 
-            margin-top: 30px; font-size: 0.9rem; padding: 10px 20px;
+        .add-btn {
+            background: #4CAF50;
+            color: white;
+            width: 100%;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 1.1rem;
         }
-        .reset-btn:hover { background: #ff5252; color: white; }
 
-        a { color: #666; text-decoration: none; font-size: 1rem; display: inline-block; padding: 10px; }
-        a:hover { text-decoration: underline; color: #c6a06d; }
+        .add-btn:hover {
+            background: #45a049;
+        }
+
+        .del-btn {
+            background: #ff5252;
+            color: white;
+            padding: 15px 20px;
+        }
+
+        .del-btn:hover {
+            background: #ff1744;
+        }
+
+        .reset-btn {
+            background: #fff;
+            border: 2px solid #ff5252;
+            color: #ff5252;
+            margin-top: 30px;
+            font-size: 0.9rem;
+            padding: 10px 20px;
+        }
+
+        .reset-btn:hover {
+            background: #ff5252;
+            color: white;
+        }
+
+        a {
+            color: #666;
+            text-decoration: none;
+            font-size: 1rem;
+            display: inline-block;
+            padding: 10px;
+        }
+
+        a:hover {
+            text-decoration: underline;
+            color: #c6a06d;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>🛠️ 管理画面</h1>
@@ -103,19 +173,35 @@
             <input type="number" id="delay" value="0" style="width: 100px; margin-left:10px;">
         </div>
 
+        <div class="input-group">
+            <label style="font-weight:bold; font-size:1.1rem;">領地:</label>
+            <select id="territory"
+                style="font-size:1.1rem; padding: 10px; margin-left:10px; border-radius:8px; border:2px solid #ccc;">
+                <option value="未定">未定</option>
+                <option value="バレノス">バレノス</option>
+                <option value="セレンディア">セレンディア</option>
+                <option value="メディア">メディア</option>
+                <option value="バレンシア">バレンシア</option>
+                <option value="ウルキタ">ウルキタ</option>
+                <option value="エダニア">エダニア</option>
+                <option value="カルフェオン">カルフェオン</option>
+                <option value="カーマスリビア">カーマスリビア</option>
+            </select>
+        </div>
+
         <h3>タイマーリスト (21:00基準)</h3>
         <p style="font-size:0.9rem; color:#666; margin-top:-10px; margin-bottom: 20px;">
             「20」と入力 → 21:00 + 20分 + 1分 = <b>21:21終了</b>
         </p>
-        
+
         <div id="timer-list"></div>
-        
+
         <button class="add-btn" onclick="addNewRow()">＋ 行を追加</button>
-        
+
         <div style="text-align: right;">
             <button class="reset-btn" onclick="resetAllTimers()">⚠️ 全て削除 (リセット)</button>
         </div>
-        
+
         <div style="margin-top:20px; text-align:right; border-top: 1px solid #eee; padding-top: 15px;">
             <a href="/" target="_blank">公開ページを確認 &rarr;</a>
         </div>
@@ -129,7 +215,8 @@
             .then(res => res.json())
             .then(data => {
                 document.getElementById('delay').value = data.delaySeconds;
-                if(data.timers && data.timers.length > 0){
+                document.getElementById('territory').value = data.territory || '未定';
+                if (data.timers && data.timers.length > 0) {
                     data.timers.forEach(t => createRow(t.label, t.minutes));
                 } else {
                     createRow();
@@ -174,19 +261,23 @@
             // 2. 遅延秒数を0にする
             document.getElementById('delay').value = 0;
 
-            // 3. 即時保存
+            // 3. 領地を未定にする
+            document.getElementById('territory').value = '未定';
+
+            // 4. 即時保存
             triggerSave(0);
 
-            // 4. 空行を追加
-            setTimeout(() => { createRow(); }, 500); 
+            // 5. 空行を追加
+            setTimeout(() => { createRow(); }, 500);
         }
 
         document.getElementById('delay').addEventListener('input', () => triggerSave());
+        document.getElementById('territory').addEventListener('change', () => triggerSave());
 
         function triggerSave(delayMs = 1000) {
             updateStatus('saving', '⏳ 保存中...');
             if (saveTimeout) clearTimeout(saveTimeout);
-            
+
             saveTimeout = setTimeout(() => {
                 performSave();
             }, delayMs);
@@ -194,6 +285,7 @@
 
         function performSave() {
             const delaySeconds = parseInt(document.getElementById('delay').value) || 0;
+            const territory = document.getElementById('territory').value;
             const timers = [];
             document.querySelectorAll('#timer-list .row').forEach(row => {
                 const inputs = row.querySelectorAll('input');
@@ -205,14 +297,14 @@
             fetch('/api/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ delaySeconds, timers })
+                body: JSON.stringify({ delaySeconds, timers, territory })
             })
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) updateStatus('saved', '✅ 保存完了');
-                else updateStatus('error', '❌ 保存エラー');
-            })
-            .catch(() => updateStatus('error', '❌ 通信エラー'));
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) updateStatus('saved', '✅ 保存完了');
+                    else updateStatus('error', '❌ 保存エラー');
+                })
+                .catch(() => updateStatus('error', '❌ 通信エラー'));
         }
 
         function updateStatus(type, text) {
@@ -222,18 +314,18 @@
         }
 
         // Enterキー移動ロジック
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             if (e.key !== 'Enter') return;
             if (e.target.tagName !== 'INPUT') return;
 
-            e.preventDefault(); 
+            e.preventDefault();
 
             const delayInput = document.getElementById('delay');
             const allInputs = Array.from(document.querySelectorAll('#timer-list input'));
-            
+
             if (e.target === delayInput) {
                 if (allInputs.length > 0) allInputs[0].focus();
-                else addNewRow(); 
+                else addNewRow();
                 return;
             }
 
@@ -245,11 +337,12 @@
                     addNewRow();
                     setTimeout(() => {
                         const newInputs = document.querySelectorAll('#timer-list input');
-                        newInputs[newInputs.length - 2].focus(); 
+                        newInputs[newInputs.length - 2].focus();
                     }, 50);
                 }
             }
         });
     </script>
 </body>
+
 </html>

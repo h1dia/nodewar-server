@@ -108,6 +108,9 @@ async function fetchApiData() {
         state.delaySeconds = parseInt(data.delaySeconds, 10) || 0;
         document.getElementById('delay-display').textContent = `遅延: +${state.delaySeconds}s`;
 
+        const territory = data.territory || '未定';
+        document.getElementById('territory-display').textContent = `領地: ${territory}`;
+
         const now = new Date(Date.now() + state.serverOffset);
         let processed = [];
 
