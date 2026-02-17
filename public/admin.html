@@ -151,7 +151,6 @@
 
         function addNewRow() {
             createRow();
-            // 追加直後は保存しない（空行のため）
         }
 
         function deleteRow(btn) {
@@ -163,13 +162,22 @@
             }, 300);
         }
 
+        // ★★★ 修正箇所: 遅延も0にする ★★★
         function resetAllTimers() {
-            if (!confirm("【警告】\n現在表示されているすべてのタイマーを削除します。\nよろしいですか？")) {
+            if (!confirm("【警告】\n現在表示されているすべてのタイマーを削除し、\n遅延秒数も 0 にリセットします。\nよろしいですか？")) {
                 return;
             }
+            // 1. リストを空にする
             const list = document.getElementById('timer-list');
             list.innerHTML = '';
+
+            // 2. 遅延秒数を0にする
+            document.getElementById('delay').value = 0;
+
+            // 3. 即時保存
             triggerSave(0);
+
+            // 4. 空行を追加
             setTimeout(() => { createRow(); }, 500); 
         }
 
@@ -213,39 +221,30 @@
             el.textContent = text;
         }
 
-        // ★★★ Enterキーによる移動・追加ロジック ★★★
+        // Enterキー移動ロジック
         document.addEventListener('keydown', function(e) {
-            // Enter以外は無視
             if (e.key !== 'Enter') return;
-            
-            // 入力欄でなければ無視
             if (e.target.tagName !== 'INPUT') return;
 
-            e.preventDefault(); // デフォルトの送信等を防ぐ
+            e.preventDefault(); 
 
             const delayInput = document.getElementById('delay');
             const allInputs = Array.from(document.querySelectorAll('#timer-list input'));
             
-            // ケース1: 遅延秒数にいる場合 -> 最初のタイマー行へ
             if (e.target === delayInput) {
                 if (allInputs.length > 0) allInputs[0].focus();
-                else addNewRow(); // 行がなければ作る
+                else addNewRow(); 
                 return;
             }
 
-            // ケース2: タイマーリスト内にいる場合
             const currentIndex = allInputs.indexOf(e.target);
             if (currentIndex !== -1) {
-                // 次の要素があるかチェック
                 if (currentIndex < allInputs.length - 1) {
                     allInputs[currentIndex + 1].focus();
                 } else {
-                    // 最後の要素の場合 -> 新しい行を追加してフォーカス
                     addNewRow();
-                    // DOM更新を少し待ってからフォーカス移動
                     setTimeout(() => {
                         const newInputs = document.querySelectorAll('#timer-list input');
-                        // 追加された行の左側(砦名)にフォーカス
                         newInputs[newInputs.length - 2].focus(); 
                     }, 50);
                 }
