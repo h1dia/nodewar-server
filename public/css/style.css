@@ -214,43 +214,88 @@ header {
     }
 }
 
-/* Bottom Status Bar */
-.bottom-badge {
+/* Bottom Status Container */
+#status-container {
     position: fixed;
-    font-size: 0.8rem;
-    padding: 10px 20px;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 30px;
-    color: var(--text-dim);
-    z-index: 100;
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-#status-area {
     bottom: 20px;
     right: 20px;
+    display: flex;
+    flex-direction: column-reverse;
+    /* 新しいものが下に追加されるように見えるが、実際は積みあがる */
+    gap: 10px;
+    z-index: 100;
+    pointer-events: none;
+    /* カード以外はクリック透過 */
 }
 
-#status-text {
-    font-weight: bold;
-    color: var(--accent-gold);
+.status-card {
+    pointer-events: auto;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px 20px;
+    color: var(--text-main);
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideIn 0.3s ease-out;
+    max-width: 300px;
+    transition: all 0.3s ease;
 }
 
-#warning-area {
-    bottom: 20px;
-    left: 20px;
-    color: var(--accent-red);
-    border-color: rgba(255, 50, 50, 0.3);
+.status-card.hiding {
     opacity: 0;
-    transition: opacity 0.3s;
+    transform: translateX(20px);
 }
 
-#warning-area.show {
-    opacity: 1;
+.status-icon {
+    font-size: 1.2rem;
+}
+
+/* Status Variants */
+.status-info {
+    border-left: 3px solid var(--accent-gold);
+}
+
+.status-success {
+    border-left: 3px solid #4caf50;
+}
+
+.status-success .status-icon {
+    color: #4caf50;
+}
+
+.status-warning {
+    border-left: 3px solid #ff9800;
+}
+
+.status-warning .status-icon {
+    color: #ff9800;
+}
+
+.status-error {
+    border-left: 3px solid var(--accent-red);
+    background: rgba(40, 10, 10, 0.9);
+}
+
+.status-error .status-icon {
+    color: var(--accent-red);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Responsive */

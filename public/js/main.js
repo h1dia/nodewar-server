@@ -45,18 +45,66 @@ function playNotifySound() {
     } catch (e) { }
 }
 
-const updateStatus = (text) => {
-    const el = document.getElementById('status-text');
-    if (el) el.textContent = text.toUpperCase();
-};
+// Status Manager Class
+class StatusManager {
+    constructor() {
+        this.container = document.getElementById('status-container');
+        this.cards = new Map();
+    }
+
+    // type: 'info', 'success', 'warning', 'error'
+    show(id, message, type = 'info', icon = 'ℹ️', duration = 0) {
+        if (this.cards.has(id)) {
+            // Update existing card
+            const card = this.cards.get(id);
+            card.querySelector('.status-msg').textContent = message;
+            card.className = `status-card status-${type}`;
+            card.querySelector('.status-icon').textContent = icon;
+
+            // If duration was set previously, clear timeout? Not implemented for simplicity unless requested
+        } else {
+            // Create new card
+            const card = document.createElement('div');
+            card.className = `status-card status-${type}`;
+            card.innerHTML = `<span class="status-icon">${icon}</span><span class="status-msg">${message}</span>`;
+
+            this.container.appendChild(card);
+            this.cards.set(id, card);
+
+            if (duration > 0) {
+                setTimeout(() => this.remove(id), duration);
+            }
+        }
+    }
+
+    remove(id) {
+        if (this.cards.has(id)) {
+            const card = this.cards.get(id);
+            card.classList.add('hiding');
+            setTimeout(() => {
+                if (card.parentNode) card.parentNode.removeChild(card);
+                this.cards.delete(id);
+            }, 300);
+        }
+    }
+}
+
+const statusMgr = new StatusManager();
+
+// Track syncing state
+state.isSyncing = false;
+state.hasError = false;
 
 async function fetchApiData() {
-    updateStatus('syncing');
+    state.isSyncing = true;
+    statusMgr.show('conn', 'データ同期中...', 'info', '🔄');
     try {
         const response = await fetch('/api/data');
         const data = await response.json();
 
-        document.getElementById('warning-area').classList.remove('show');
+        state.hasError = false;
+        // Success message updates are now handled by updateDisplay to include countdown
+
         state.delaySeconds = parseInt(data.delaySeconds, 10) || 0;
         document.getElementById('delay-display').textContent = `遅延: +${state.delaySeconds}s`;
 
@@ -77,6 +125,21 @@ async function fetchApiData() {
             });
         }
 
+        // ?砦 Timer (21:20 + delay)
+        const mysteryTarget = new Date(Date.now() + state.serverOffset);
+        mysteryTarget.setHours(CONFIG.BH, 20, 0, 0); // 21:20:00
+        mysteryTarget.setSeconds(mysteryTarget.getSeconds() + state.delaySeconds);
+
+        if (mysteryTarget > now) {
+            processed.push({
+                id: "mystery-timer",
+                label: "？砦",
+                targetDate: mysteryTarget,
+                isFinished: false,
+                type: "mystery"
+            });
+        }
+
         if (data.timers && Array.isArray(data.timers)) {
             data.timers.forEach((t, index) => {
                 const minutesToAdd = parseInt(t.minutes, 10);
@@ -91,11 +154,13 @@ async function fetchApiData() {
             });
         }
         renderTimers(processed);
-        updateStatus('active');
     } catch (e) {
         console.error(e);
-        updateStatus('offline');
-        document.getElementById('warning-area').classList.add('show');
+        state.hasError = true;
+        // Error is handled in updateDisplay or here immediately
+        statusMgr.show('conn', 'サーバー接続エラー', 'error', '⚠️');
+    } finally {
+        state.isSyncing = false;
     }
 }
 
@@ -143,7 +208,16 @@ function updateDisplay() {
     const now = new Date(Date.now() + state.serverOffset);
     document.getElementById('current-time').innerHTML = formatTimeHtml(now.toTimeString().split(' ')[0]);
     const nextSec = Math.max(0, Math.ceil((state.nextUpdateTimestamp - Date.now()) / 1000));
-    document.getElementById('update-countdown').textContent = `${nextSec}S`;
+
+    // Update Combined Status Card (Success + Countdown)
+    if (!state.isSyncing) {
+        if (state.hasError) {
+            statusMgr.show('conn', `接続エラー (再試行: ${nextSec}秒)`, 'error', '⚠️');
+        } else {
+            // Normal operation: Show "Connect: OK" with countdown
+            statusMgr.show('conn', `接続完了 (更新: ${nextSec}秒)`, 'success', '✅');
+        }
+    }
 
     let hasNewFinished = false;
     state.timerData.forEach(item => {
