@@ -121,7 +121,7 @@ function renderTimers(newData) {
         const card = document.createElement('div');
         card.id = `card-${item.id}`;
         card.className = `timer-card ${item.isFinished ? 'finished' : ''}`;
-        card.innerHTML = `<p class="label">${item.label}</p><div id="${item.id}" class="display">${item.isFinished ? '00:00:00' : '--:--:--'}</div>`;
+        card.innerHTML = `<p class="label">${item.label}</p><div id="${item.id}" class="display">${item.isFinished ? formatTimeHtml('00:00:00') : formatTimeHtml('--:--:--')}</div>`;
         container.appendChild(card);
     });
 }
@@ -133,9 +133,15 @@ function reorderCards() {
     cards.forEach(card => container.appendChild(card));
 }
 
+function formatTimeHtml(timeStr) {
+    return timeStr.split('').map(char => {
+        return (char === ':') ? ':' : `<span class="digit">${char}</span>`;
+    }).join('');
+}
+
 function updateDisplay() {
     const now = new Date(Date.now() + state.serverOffset);
-    document.getElementById('current-time').textContent = now.toTimeString().split(' ')[0];
+    document.getElementById('current-time').innerHTML = formatTimeHtml(now.toTimeString().split(' ')[0]);
     const nextSec = Math.max(0, Math.ceil((state.nextUpdateTimestamp - Date.now()) / 1000));
     document.getElementById('update-countdown').textContent = `${nextSec}S`;
 
@@ -156,12 +162,13 @@ function updateDisplay() {
                 setTimeout(() => card.remove(), 600);
             } else {
                 card.classList.add('finished');
-                el.textContent = "00:00:00";
+                el.innerHTML = formatTimeHtml("00:00:00");
                 hasNewFinished = true;
             }
         } else {
             const s = Math.ceil(diff / 1000);
-            el.textContent = [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s % 60].map(v => String(v).padStart(2, '0')).join(':');
+            const timeStr = [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s % 60].map(v => String(v).padStart(2, '0')).join(':');
+            el.innerHTML = formatTimeHtml(timeStr);
         }
     });
     if (hasNewFinished) reorderCards();
