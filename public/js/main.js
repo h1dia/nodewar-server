@@ -1,11 +1,25 @@
 const CONFIG = { BH: 21, INTV: 5000 };
-let state = { timerData: [], serverOffset: 0, lastCheckData: "", delaySeconds: 0, nextUpdateTimestamp: 0, audioEnabled: false };
+let state = { timerData: [], serverOffset: 0, lastCheckData: "", delaySeconds: 0, nextUpdateTimestamp: 0, audioEnabled: true };
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let audioCtx = null;
 
-function toggleAudio() {
+// Initialize Audio Context on first user interaction
+const initAudioContext = () => {
     if (!audioCtx) audioCtx = new AudioCtx();
     if (audioCtx.state === 'suspended') audioCtx.resume();
+    // Remove listener after first interaction
+    document.removeEventListener('click', initAudioContext);
+    document.removeEventListener('touchstart', initAudioContext);
+};
+
+document.addEventListener('click', initAudioContext);
+document.addEventListener('touchstart', initAudioContext);
+
+function toggleAudio() {
+    if (!audioCtx) {
+        audioCtx = new AudioCtx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
     state.audioEnabled = !state.audioEnabled;
     const btn = document.getElementById('audio-control');
     btn.textContent = state.audioEnabled ? "🔊" : "🔇";
